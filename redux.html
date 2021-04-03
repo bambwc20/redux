@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.0-beta.1/redux.min.js"
+      integrity="sha512-lbCmhqdlJjTzzRbvaHugWpmoDmdqrFW/kmnKyNJH9NiXjKECwiPG6LYc9/iHveXIMyQpMWTo6J8gQXOrmkbe3A=="
+      crossorigin="anonymous"
+    ></script>
+    <title>Document</title>
+    <style>
+      .container {
+        border: 5px solid black;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body></body>
+  <article></article>
+
+  <script>
+    const tags = [
+      { color: "red" },
+      { color: "yellow" },
+      { color: "blue" },
+      { color: "green" },
+      { color: "pink" },
+      { color: "white" },
+      { color: "orange" },
+    ];
+    var body = "";
+    tags.map((tag) => {
+      body += `<div id="${tag.color}" class="color"></div>`;
+    });
+    document.querySelector("body").innerHTML = body;
+  </script>
+
+  <script>
+    reducer = (state, action) => {
+      console.log(state, action);
+      if (state === undefined) {
+        return { color: "white" };
+      }
+      var newState;
+      if (action.type === "CHANGE_COLOR") {
+        newState = Object.assign({}, state, { color: action.color });
+      }
+      return newState;
+    };
+
+    const store = Redux.createStore(reducer);
+  </script>
+
+  <script>
+    template = () => {
+      tags.map((tag) => {
+        document.querySelector(
+          `#${tag.color}`
+        ).innerHTML = `<div class="container" id="component_${tag.color}">
+            <h1>${tag.color}</h1>
+            <input type="button" value="fire" onclick="
+            store.dispatch({ type: 'CHANGE_COLOR', color:'${tag.color}' })
+            " /></div>`;
+      });
+    };
+    template();
+
+    backColor = () => {
+      var state = store.getState();
+      tags.map((tag) => {
+        document.querySelector(
+          `#${tag.color}`
+        ).style = `background-color:${state.color}`;
+      });
+    };
+    store.subscribe(backColor);
+    backColor();
+  </script>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/redux/4.0.1/redux.js"></script>
+  </head>
+  <body>
+    <div id="subject"></div>
+    <div id="toc"></div>
+    <div id="control"></div>
+    <div id="content"></div>
+    <script>
+      function subject() {
+        document.querySelector("#subject").innerHTML = `<header>
+        <a onclick="
+        event.preventDefault()
+        store.dispatch({type: 'HOME',mode: 'welcome',selected_id: null })
+        " href="/"><h1>WEB</h1></a>
+        Hello, WEB!
+      </header>`;
+      }
+      function TOC() {
+        var state = store.getState();
+        var liTags = "";
+        var i = 0;
+        while (i < state.contents.length) {
+          liTags += `<li>
+            <a onclick="
+                event.preventDefault();
+                var action = {type: 'SELECT', id:${state.contents[i].id}, mode: 'read'}
+                store.dispatch(action);
+            " href="${state.contents[i].id}">
+                ${state.contents[i].title}
+            </a>
+        </li>`;
+          i++;
+        }
+        document.querySelector("#toc").innerHTML = `
+        <nav>
+        <ol>
+          ${liTags}
+        </ol>
+      </nav>`;
+      }
+      function control() {
+        var state = store.getState();
+        if (state.mode === "read") {
+          document.querySelector("#control").innerHTML = `
+      <ul>
+        <li><a onclick="
+            event.preventDefault();
+            store.dispatch({type: 'CREATE', mode: 'create',selected_id: null })
+            " href="/create">create</a>
+        </li>
+        <li>
+          <a onclick="
+            event.preventDefault();
+            store.dispatch({type: 'UPDATE', mode: 'update'})
+          " href="/update">update</a>
+        </li>
+        <li>
+          <input onclick="
+          store.dispatch({type: 'DELETE', selected_id: null});
+          " type="button" value="delete" />
+        </li>
+      </ul>`;
+        } else if (state.mode === "create") {
+          document.querySelector("#control").innerHTML = `
+      <ul>
+        <li><a onclick="
+            event.preventDefault();
+            store.dispatch({type: 'CREATE', mode: 'create',selected_id: null })
+            " href="/create">create</a>
+        </li>
+      </ul>`;
+        } else if (state.mode === "update") {
+          document.querySelector("#control").innerHTML = `
+      <ul>
+        <li><a onclick="
+            event.preventDefault();
+            store.dispatch({type: 'CREATE', mode: 'create',selected_id: null })
+            " href="/create">create</a>
+        </li>
+        <li>
+          <a onclick="
+            event.preventDefault();
+            store.dispatch({type: 'UPDATE', mode: 'update'})
+          " href="/update">update</a>
+        </li>
+        <li>
+          <input onclick="
+          store.dispatch({type: 'DELETE', selected_id: null});
+          " type="button" value="delete" />
+        </li>
+      </ul>`;
+        } else if (state.mode === "welcome") {
+          document.querySelector("#control").innerHTML = `
+      <ul>
+        <li><a onclick="
+            event.preventDefault();
+            store.dispatch({type: 'CREATE', mode: 'create',selected_id: null })
+            " href="/create">create</a>
+        </li>
+      </ul>`;
+        }
+      }
+      function article() {
+        var state = store.getState();
+        if (state.mode === "create") {
+          document.querySelector("#content").innerHTML = `
+          <article>
+        <form onsubmit="
+            event.preventDefault();
+            var _title = this.title.value;
+            var _desc = this.desc.value;
+            store.dispatch({
+                type: 'CREATE_PROCESS',
+                title: _title,
+                desc: _desc
+            })
+        ">
+            <p>
+                <input type='text' name='title' placeholder='title' />
+            </p>
+            <p>
+                <textarea name='desc' placeholder='description'></textarea>
+            </p>
+            <p>
+               <input type='submit' />
+            </p>
+        </form>
+      </article>`;
+        } else if (state.mode === "read") {
+          var i = 0;
+          var aTitle, aDesc;
+          while (i < state.contents.length) {
+            if (state.contents[i].id === state.selected_id) {
+              aTitle = state.contents[i].title;
+              aDesc = state.contents[i].desc;
+              break;
+            }
+            i = i + 1;
+          }
+          document.querySelector("#content").innerHTML = `
+        <article>
+        <h2>${aTitle}</h2>
+        ${aDesc}
+        </article>`;
+        } else if (state.mode === "welcome") {
+          document.querySelector("#content").innerHTML = `
+        <article>
+        <h2>Welcome</h2>
+        Hello Redux!!
+        </article>`;
+        } else if (state.mode === "update") {
+          var pageObj = state.contents.find(
+            (x) => x.id === Number(state.selected_id)
+          );
+          var _title = pageObj.title;
+          var _desc = pageObj.desc;
+          document.querySelector("#content").innerHTML = `
+          <article>
+        <form onsubmit="
+            event.preventDefault();
+            store.dispatch({
+                type: 'UPDATE_PROCESS',
+                title: this.title.value,
+                desc: this.desc.value
+            })
+        ">
+            <p>
+                <input type='text' name='title' placeholder='title' value="${_title}" />
+            </p>
+            <p>
+                <textarea name='desc' placeholder='description'>${_desc}</textarea>
+            </p>
+            <p>
+               <input type='submit' />
+            </p>
+        </form>
+      </article>`;
+        }
+      }
+
+      function reducer(state, action) {
+        if (state === undefined) {
+          return {
+            max_id: 2,
+            mode: "welcome",
+            contents: [
+              { id: 0, title: "HTML", desc: "HTML is ..." },
+              { id: 1, title: "CSS", desc: "CSS is ..." },
+            ],
+          };
+        }
+        var newState;
+        if (action.type === "HOME") {
+          newState = Object.assign({}, state, {
+            mode: action.mode,
+            selected_id: action.selected_id,
+          });
+        } else if (action.type === "SELECT") {
+          newState = Object.assign({}, state, {
+            selected_id: action.id,
+            mode: action.mode,
+          });
+        } else if (action.type === "CREATE") {
+          newState = Object.assign({}, state, {
+            mode: action.mode,
+            selected_id: action.selected_id,
+          });
+        } else if (action.type === "CREATE_PROCESS") {
+          var newMaxId = state.max_id + 1;
+          var newContents = state.contents.concat();
+          newContents.push({
+            id: newMaxId,
+            title: action.title,
+            desc: action.desc,
+          });
+          newState = Object.assign({}, state, {
+            max_id: newMaxId,
+            selected_id: newMaxId,
+            mode: "read",
+            contents: newContents,
+          });
+        } else if (action.type === "UPDATE") {
+          newState = Object.assign({}, state, {
+            mode: action.mode,
+          });
+        } else if (action.type === "UPDATE_PROCESS") {
+          var newContents = state.contents.concat();
+          var pageObj = newContents.find(
+            (x) => x.id === Number(state.selected_id)
+          );
+          pageObj.title = action.title;
+          pageObj.desc = action.desc;
+          newState = Object.assign({}, state, {
+            selected_id: state.selected_id,
+            mode: "read",
+            contents: newContents,
+          });
+        } else if (action.type === "DELETE") {
+          var newContents = [];
+          var i = 0;
+          while (i < state.contents.length) {
+            if (state.selected_id !== state.contents[i].id) {
+              newContents.push(state.contents[i]);
+            }
+            i++;
+          }
+          newState = Object.assign({}, state, {
+            contents: newContents,
+            mode: "welcome",
+            selected_id: action.selected_id,
+          });
+        }
+        console.log(action, state, newState);
+        return newState;
+      }
+      var store = Redux.createStore(reducer);
+      store.subscribe(article);
+      store.subscribe(TOC);
+      store.subscribe(control);
+      subject();
+      TOC();
+      control();
+      article();
+    </script>
+  </body>
+</html>
